@@ -1,17 +1,13 @@
-import requests
 import datetime
 import slack_sdk
 import traceback
 import flask
-from flask import render_template
 from slackeventsapi import SlackEventAdapter
 import json
 import pathlib
-import gsheets
 from pathlib import Path
 from config import bot_token, secret, channel
 from werkzeug.exceptions import HTTPException
-import re
 
 
 client = slack_sdk.WebClient(token=bot_token)
@@ -58,4 +54,4 @@ def handle_exception(e):
 
 
 if __name__ == "__main__":
-    pass  # app.run("localhost", port=8080, debug=True)
+    app.run("localhost", port=8080, debug=True)
