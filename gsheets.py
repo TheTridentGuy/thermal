@@ -7,8 +7,8 @@ from pathlib import Path
 
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-SAMPLE_SPREADSHEET_ID = "1Gph7zNLJ3voEk0RVGufDPXczWF5gY_8KcKnh1UHdHWY"
-SAMPLE_RANGE_NAME = "Signed In!A:E"
+SAMPLE_SPREADSHEET_ID = ""
+SAMPLE_RANGE_NAME = ""
 
 
 def get_range(sheet_id, r, token_path=Path(__file__).parent.resolve()/Path("token.json"),

@@ -1,0 +1,23 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator db {
+  provider             = "prisma-client-py"
+  interface            = "sync"
+  recursive_type_depth = 5
+}
+
+model Scout {
+  slack_id      String @id
+  shift         Shift  @relation(fields: [shiftShift_id], references: [shift_id])
+  shiftShift_id String
+}
+
+model Shift {
+  shift_id String   @id
+  start    DateTime
+  end      DateTime
+  scouts   Scout[]
+}
