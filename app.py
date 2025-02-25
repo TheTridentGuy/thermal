@@ -6,9 +6,11 @@ from slackeventsapi import SlackEventAdapter
 from werkzeug.exceptions import HTTPException
 from prisma import Prisma
 import datetime
+import tba
+import block_kit_templates as bkt
 
 
-from config import bot_token, secret, main_channel, log_channel
+from config import bot_token, secret, main_channel, log_channel, tba_key, team
 
 
 client = slack_sdk.WebClient(token=bot_token)
@@ -18,14 +20,12 @@ db = Prisma()
 db.connect()
 
 
-client.chat_postMessage(channel=main_channel, text=":information_source: bot is online")
-
 # BEGIN DEBUG DATA
 DEBUG = True
 if DEBUG:
     if not db.scout.find_first() and not db.shift.find_first():
         db.shift.create(data={"shift_id": "A", "start": datetime.datetime.now(), "end": datetime.datetime.now()+datetime.timedelta(hours=8)})
-        db.scout.create(data={"slack_id": "U08CGRSBY14", "shiftShift_id": "A"})
+        db.scout.create(data={"slack_id": "U06FG6G6SNL", "shiftShift_id": "A"})
     else:
         db.shift.update(where={"shift_id": "A"}, data={"start": datetime.datetime.now(), "end": datetime.datetime.now()+datetime.timedelta(hours=8)})
 # END DEBUG DATA
@@ -33,7 +33,7 @@ if DEBUG:
 def send_dm(user, message):
     response = client.conversations_open(users=user)
     channel_id = response["channel"]["id"]
-    client.chat_postMessage(channel=channel_id, text=message)
+    return client.chat_postMessage(channel=channel_id, text=message)
 
 
 def log_message(message):
@@ -44,6 +44,15 @@ def log_message(message):
 def command():
     pass
 
+
+@app.route("/commands/events_available", methods=["POST"])
+def events_available():
+    year = datetime.datetime.now().year
+    events = tba.get_events(team, tba_key, year)
+    message = bkt.event_report(events, team, year)
+    client.chat_postEphemeral(channel=main_channel, blocks=message, user="U06FG6G6SNL")
+    return message
+events_available()
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
@@ -58,6 +67,11 @@ def handle_exception(e):
                 + (f"\n\n-- REQUEST HEADERS: --\n\n{headers}" if headers else "")
                 + (f"\n\n-- REQUEST DATA: --\n\n{data}" if data else ""))
     return ":x: Something went wrong, please try again later."
+
+
+
+log_message(f":information_source: [{datetime.datetime.now()}] App started successfully")
+
 
 
 if __name__ == "__main__":
