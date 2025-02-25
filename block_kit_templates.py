@@ -51,3 +51,68 @@ def event_report(events, team, year):
             }
         ])
     return blocks
+
+def greeting(shifts):
+    blocks = [
+		{
+			"type": "header",
+			"text": {
+				"type": "plain_text",
+				"text": f"Your scouting shifts for {datetime.now().strftime('%b %d')}:",
+				"emoji": True
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": f"{'\n'.join(['*'+shift.get('start').strftime('%I:%M %p')+'-'+shift.get('end').strftime('%I:%M %p')+'*' for shift in shifts])}"
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "You will be notified ~7 minutes before the start of your shifts, and match info will be provided."
+			}
+		}
+	]
+
+def shift_message():
+    blocks = [
+		{
+			"type": "header",
+			"text": {
+				"type": "plain_text",
+				"text": "Upcoming matches for you to scout:",
+				"emoji": True
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*QM45:* 1678 (Red 3)"
+			},
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "App Link",
+					"emoji": True
+				},
+				"value": "click_me_123",
+				"url": "https://google.com",
+				"action_id": "button-action"
+			}
+		}
+	]

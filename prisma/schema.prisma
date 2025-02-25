@@ -10,14 +10,19 @@ generator db {
 }
 
 model Scout {
-  slack_id      String @id
-  shift         Shift  @relation(fields: [shiftShift_id], references: [shift_id])
-  shiftShift_id String
+  slack_id String  @id
+  shifts   Shift
 }
 
 model Shift {
   shift_id String   @id
-  start    DateTime
-  end      DateTime
+  time_ranges TimeRange[]
   scouts   Scout[]
+}
+
+model TimeRange {
+  id     Int     @id @default(autoincrement())
+  start  DateTime
+  end    DateTime
+  shift  Shift
 }

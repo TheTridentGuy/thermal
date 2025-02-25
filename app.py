@@ -23,17 +23,20 @@ db.connect()
 # BEGIN DEBUG DATA
 DEBUG = True
 if DEBUG:
-    if not db.scout.find_first() and not db.shift.find_first():
+    if not db.shift.find_first():
         db.shift.create(data={"shift_id": "A", "start": datetime.datetime.now(), "end": datetime.datetime.now()+datetime.timedelta(hours=8)})
-        db.scout.create(data={"slack_id": "U06FG6G6SNL", "shiftShift_id": "A"})
     else:
         db.shift.update(where={"shift_id": "A"}, data={"start": datetime.datetime.now(), "end": datetime.datetime.now()+datetime.timedelta(hours=8)})
+    if not db.scout.find_first():
+        db.scout.create(data={"slack_id": "U06FG6G6SNL", "shifts": ["A"]})
+    else:
+        db.scout.update(where={"slack_id": "U06FG6G6SNL"}, data={"shifts": ["A"]})
 # END DEBUG DATA
 
-def send_dm(user, message):
+def send_dm(user, text, blocks):
     response = client.conversations_open(users=user)
     channel_id = response["channel"]["id"]
-    return client.chat_postMessage(channel=channel_id, text=message)
+    return client.chat_postMessage(channel=channel_id, text=text, blocks=blocks)
 
 
 def log_message(message):
@@ -44,6 +47,16 @@ def log_message(message):
 def command():
     pass
 
+def send_greeting(scout_id):
+    print(scout_id)
+    print(db.scout.find_first(where={"slack_id": scout_id}))
+    print(db.scout.find_many())
+    scout = db.scout.find_first(where={"slack_id": scout_id})
+    print(scout.shifts)
+    shifts = list(scout.shifts)
+    message = bkt.greeting(shifts)
+    send_dm(scout_id, "Here are your upcoming shifts:", message)
+send_greeting("U06FG6G6SNL")
 
 @app.route("/commands/events_available", methods=["POST"])
 def events_available():
