@@ -69,7 +69,7 @@ def greeting(shifts):
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": f"{'\n'.join(['*'+shift.get('start').strftime('%I:%M %p')+'-'+shift.get('end').strftime('%I:%M %p')+'*' for shift in shifts])}"
+				"text": f"{'\n'.join(['*'+shift[0]+' - '+shift[1]+'*' for shift in shifts])}"
 			}
 		},
 		{
@@ -83,6 +83,7 @@ def greeting(shifts):
 			}
 		}
 	]
+    return blocks
 
 def shift_message():
     blocks = [
