@@ -1,7 +1,9 @@
 import datetime
 import slack_sdk
 import traceback
+import json
 import flask
+from flask import request
 from slackeventsapi import SlackEventAdapter
 from werkzeug.exceptions import HTTPException
 import datetime
@@ -9,7 +11,7 @@ import tba
 import block_kit_templates as bkt
 
 
-from config import bot_token, secret, main_channel, log_channel, tba_key, team, scouts
+from config import bot_token, secret, log_channel, admin_channel, tba_key, team, scouts
 
 
 client = slack_sdk.WebClient(token=bot_token)
@@ -22,29 +24,42 @@ def send_dm(user, text, blocks):
     channel_id = response["channel"]["id"]
     return client.chat_postMessage(channel=channel_id, text=text, blocks=blocks)
 
-
 def log_message(message):
     client.chat_postMessage(channel=log_channel, text=message)
 
+def format_log(message):
+    return f":information_source: [{datetime.datetime.now()}] {message}"
+
+def send_shifts(scout_id):
+    shifts = scouts.get(scout_id).get("shifts")
+    blocks = bkt.greeting(shifts)
+    send_dm(scout_id, "Your scouting shifts are here.", blocks)
+
+def send_all_shifts():
+    for scout in scouts.keys():
+        send_shifts(scout)
+send_all_shifts()
 
 @app.route("/commands/command", methods=["POST"])
 def command():
     pass
-
-def send_greeting(scout_id):
-    shifts = scouts.get(scout_id).get("shifts")
-    blocks = bkt.greeting(shifts)
-    send_dm(scout_id, "Your scouting shifts are here.", blocks)
-send_greeting("U06FG6G6SNL")
 
 @app.route("/commands/events_available", methods=["POST"])
 def events_available():
     year = datetime.datetime.now().year
     events = tba.get_events(team, tba_key, year)
     message = bkt.event_report(events, team, year)
-    client.chat_postEphemeral(channel=main_channel, blocks=message, user="U06FG6G6SNL")
-    return message
-events_available()
+    client.chat_postEphemeral(channel=request.values.get("channel"), text=f"Events for {team}: {','.join([event.get('name') for event in events])}", blocks=message, user=request.values.get("user_id"))
+    return ""
+
+@app.route("/webhooks/tba", methods=["POST"])
+def tba_webhook():
+    data = json.loads(request.data)
+    if data.get("message_type") == "verification":
+        message  = f"Received TBA webhook verification key: `{data.get('message_data').get('verification_key')}`"
+        client.chat_postMessage(channel=admin_channel, text=message)
+        log_message(format_log(message))
+    return ""
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
@@ -62,7 +77,7 @@ def handle_exception(e):
 
 
 
-log_message(f":information_source: [{datetime.datetime.now()}] App started successfully")
+log_message(format_log("Server started"))
 
 
 
