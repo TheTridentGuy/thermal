@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0f29588-b48a-473b-b324-abfd3082d2cf" name="Changes" comment="fix a silly debug thing">
+    <list default="true" id="f0f29588-b48a-473b-b324-abfd3082d2cf" name="Changes" comment="kinda works now :yay:">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/block_kit_templates.py" beforeDir="false" afterPath="$PROJECT_DIR$/block_kit_templates.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tba.py" beforeDir="false" afterPath="$PROJECT_DIR$/tba.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -134,7 +133,7 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
@@ -191,7 +190,7 @@
       <workItem from="1740617888854" duration="14322000" />
       <workItem from="1740811618808" duration="838000" />
       <workItem from="1740855337241" duration="492000" />
-      <workItem from="1740856137041" duration="1996000" />
+      <workItem from="1740856137041" duration="4689000" />
     </task>
     <task id="LOCAL-00001" summary="add hints for unnecessary data">
       <option name="closed" value="true" />
@@ -233,7 +232,15 @@
       <option name="project" value="LOCAL" />
       <updated>1740191825479</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="kinda works now :yay:">
+      <option name="closed" value="true" />
+      <created>1740858524445</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1740858524445</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -243,13 +250,14 @@
     <MESSAGE value="add hints for unnecessary data" />
     <MESSAGE value="fix hints" />
     <MESSAGE value="fix a silly debug thing" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix a silly debug thing" />
+    <MESSAGE value="kinda works now :yay:" />
+    <option name="LAST_COMMIT_MESSAGE" value="kinda works now :yay:" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/thermal$thermal.coverage" NAME="thermal Coverage Results" MODIFIED="1740812078421" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/SlackSignInBot$gsheets.coverage" NAME="gsheets Coverage Results" MODIFIED="1738628808747" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/SlackSignInBot$app.coverage" NAME="app Coverage Results" MODIFIED="1736819092899" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/thermal$Flask__app_py_.coverage" NAME="Flask (app.py) Coverage Results" MODIFIED="1739774142176" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
-    <SUITE FILE_PATH="coverage/thermal$app.coverage" NAME="app Coverage Results" MODIFIED="1740856808110" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/thermal$app.coverage" NAME="app Coverage Results" MODIFIED="1740860938966" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>

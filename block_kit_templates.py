@@ -64,7 +64,7 @@ def event_report(events, team, year, events_to_scout):
     ])
     return blocks
 
-def match_scouting_schedule(shift_str):
+def match_scouting_schedule(shift_str, setup_link):
     blocks = [
         {
             "type": "header",
@@ -93,7 +93,25 @@ def match_scouting_schedule(shift_str):
                 "type": "mrkdwn",
                 "text": "You will be notified ~7 minutes before the start of your shifts, and match info will be provided."
             }
-        }
+        },
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*Please make sure you're signed into the scouting app!*"
+			},
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "Go to scouting app",
+					"emoji": True
+				},
+				"value": "click_me_123",
+				"url": setup_link,
+				"action_id": "button-action"
+			}
+		}
     ]
     return blocks
 
