@@ -13,9 +13,7 @@ def get_events(team, tba_key, year):
     url = f"https://www.thebluealliance.com/api/v3/team/{team}/events/{year}"
     return requests.get(url, headers=headers).json()
 
-
-if __name__ == "__main__":
-    from config import tba_key
+def get_match(match_key, tba_key):
     headers = gen_headers(tba_key)
-    url = "https://www.thebluealliance.com/api/v3/event/2025casf"
-    pprint.pprint(requests.get(url, headers=headers).json())
+    url = f"https://www.thebluealliance.com/api/v3/match/{match_key}"
+    return requests.get(url, headers=headers).json()
