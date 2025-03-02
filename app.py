@@ -97,6 +97,29 @@ def send_schedules():
     else:
         return f":x: You need to run this command from <#{admin_channel}>."
 
+@app.route("/commands/how_we_doin", methods=["POST"])
+def how_we_doin():
+    event_data = tba.get_events(f"frc{team}", tba_key, datetime.datetime.now().year)
+    for event in event_data:
+        start = datetime.datetime.fromisoformat(event.get("start_date")).replace(hour=0, minute=0)
+        end = datetime.datetime.fromisoformat(event.get("end_date")).replace(hour=23, minute=59)
+        if start < datetime.datetime.now() < end:
+            event_key = event.get("key")
+            match_data = tba.get_matches_simple(f"frc{team}", event_key, tba_key)
+            status = tba.get_status(f"frc{team}", event_key, tba_key)
+            match_str = ""
+            for match in match_data:
+                match_str += f"*{match.get('comp_level').upper()}{match.get('match_number')}*: {datetime.datetime.fromtimestamp(match.get('time')).strftime('%H:%M')}\n"
+            wins = status.get("qual", {}).get("ranking", {}).get("record", {}).get("wins", 0)
+            losses = status.get("qual", {}).get("ranking", {}).get("record", {}).get("losses", 0)
+            ties = status.get("qual", {}).get("ranking", {}).get("record", {}).get("ties", 0)
+            rank = status.get("qual", {}).get("ranking", {}).get("rank", 0)
+            blocks = bkt.match_report(event.get("name"), match_str, team, rank, wins, losses, ties)
+            client.chat_postEphemeral(channel=request.values.get("channel_id"), text=f"Matches for {team} at {event.get('name')}. {team} is currently ranked #{rank} ({wins}-{losses}-{ties}).", blocks=blocks, user=request.values.get("user_id"))
+            return ""
+    return f":x: No ongoing events found for {team}."
+
+
 @app.route("/commands/events_available", methods=["POST"])
 def events_available():
     year = datetime.datetime.now().year

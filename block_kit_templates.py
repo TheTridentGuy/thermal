@@ -121,7 +121,7 @@ def scouting_reminder(game, team, alliance_member):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*You will scout {game}:* {team} ({alliance_member})"
+                "text": f"*Get ready scout {team} ({alliance_member}) in {game}*"
             },
             "accessory": {
                 "type": "button",
@@ -156,6 +156,39 @@ def match_announcement(team, match_str, predicted_time):
             "text": {
                 "type": "mrkdwn",
                 "text": f"*{match_str}*"
+            }
+        }
+    ]
+    return blocks
+
+def match_report(event_name, match_str, team, ranking, wins, losses, ties):
+    blocks = [
+        {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": f"Matches for {team} at {event_name}",
+                "emoji": True
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"{match_str}"
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*{team}* is currently ranked #{ranking} with a record of {wins}-{losses}-{ties} (W-L-T) in qualification matches."
             }
         }
     ]
