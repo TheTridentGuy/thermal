@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="logo.jpg" />
-</p>
+<p align="center"><img src="logo.jpg" style="border-radius: 10%;height: 25vmin;"/></p>
 
 # **thermal**
 ### Slack-based scouting bot for FRC (WIP)
