@@ -3,31 +3,92 @@ import traceback
 import json
 import flask
 from flask import request
-from slackeventsapi import SlackEventAdapter
 from werkzeug.exceptions import HTTPException
 import datetime
 import tba
 import block_kit_templates as bkt
 
 
-from config import bot_token, secret, log_channel, admin_channel, tba_key, team, match_scouts, match_scouting_shifts, events_to_scout, announcement_channel, setup_link
+from config import bot_token, log_channel, admin_channel, tba_key, team, events_to_scout, announcement_channel, setup_link, shift_schedule_file, state_file
 
 
 client = slack_sdk.WebClient(token=bot_token)
 app = flask.Flask(__name__)
-events = SlackEventAdapter(secret, "/slack/events", app)
+state = None
+match_scouts = {}
+match_scouting_shifts = {}
+scouting_enabled = True
+state_shift_schedule_variant_key = "shift_schedule_variant"
+state_scouting_enabled_key = "scouting_enabled"
+shift_schedule_variants_key = "shift_schedule_variants"
+scouts_key = "match_scouts"
 
+
+class State:
+    def __init__(self, file):
+        self._file = file
+        self.state = {}
+        self.load()
+
+    def load(self):
+        try:
+            with open(self._file, "r") as f:
+                self.state = json.loads(f.read())
+        except FileNotFoundError:
+            self.state = {}
+
+    def save(self):
+        with open(self._file, "w") as f:
+            f.write(json.dumps(self.state))
+
+def load_shift_info():
+    # TODO: add ability to change schedule variant, plus support for default variant
+    global match_scouting_shifts, match_scouts, state, scouting_enabled
+    state = State(state_file)
+    try:
+        with open(shift_schedule_file) as f:
+            data = json.load(f)
+            match_scouts = data.get(scouts_key)
+            shift_schedule_variants = data.get(shift_schedule_variants_key)
+            state_variant = state.state.get(state_shift_schedule_variant_key)
+            scouting_enabled = state.state.get(state_scouting_enabled_key, True)
+            if state_variant:
+                active_variant = state_variant
+            else:
+                active_variant = list(shift_schedule_variants.keys())[0]
+            state.state[state_scouting_enabled_key] = scouting_enabled
+            state.state[state_shift_schedule_variant_key] = active_variant
+            state.save()
+            match_scouting_shifts = shift_schedule_variants.get(active_variant)
+            blocks = bkt.config_message(scouting_enabled, active_variant, list(shift_schedule_variants.keys()))
+            client.chat_postMessage(channel=admin_channel, text=f"Config loaded, scouting is {'enabled' if scouting_enabled else 'disabled'}, and the current shift schedule variant is *{active_variant}*", blocks=blocks)
+    except Exception as e:
+        log_message_warn(format_log_warn(f"Failed to load shift schedules, this is probably bad. Check <#{log_channel}> for details."))
+        log_message_info(format_log_info(f"Error loading shift schedules from file: {e}"))
+        return
+    if not match_scouts:
+        log_message_warn(format_log_warn("No scout data found in shift schedule file. This is probably bad."))
+    if not match_scouting_shifts:
+        log_message_warn(format_log_warn("No shift data found in shift schedule file. This is probably bad."))
+    log_message_info(format_log_info(f"Scout data loaded from {shift_schedule_file}: {match_scouts}"))
+    log_message_info(format_log_info(f"Shift data loaded from {shift_schedule_file}: {match_scouting_shifts}"))
 
 def send_dm(user, text, blocks):
     response = client.conversations_open(users=user)
     channel_id = response["channel"]["id"]
     return client.chat_postMessage(channel=channel_id, text=text, blocks=blocks)
 
-def log_message(message):
+def log_message_info(message):
     client.chat_postMessage(channel=log_channel, text=message)
 
-def format_log(message):
+def log_message_warn(message):
+    client.chat_postMessage(channel=admin_channel, text=message)
+
+def format_log_info(message):
     return f":information_source: [{datetime.datetime.now()}] {message}"
+
+def format_log_warn(message):
+    return f":warning: [{datetime.datetime.now()}] :warning: WARNING :warning:\n{message}"
 
 def send_schedule(scout_id):
     scout = match_scouts.get(scout_id)
@@ -46,20 +107,22 @@ def send_schedule(scout_id):
 
 def send_all_schedules():
     for scout in match_scouts.keys():
-        log_message(format_log(f"Sending schedule to <@{scout}>"))
+        log_message_info(format_log_info(f"Sending schedule to <@{scout}>"))
         send_schedule(scout)
 
 def process_match(match_data):
     full_match_data = tba.get_match(match_data.get("match_key"), tba_key)
     if f"frc{team}" in match_data.get("team_keys"):
-        log_message(format_log(f"Upcoimg match for {team} at {match_data.get('event_key')}: {match_data.get('match_key')}, announcing..."))
+        log_message_info(format_log_info(
+            f"Upcoimg match for {team} at {match_data.get('event_key')}: {match_data.get('match_key')}, announcing..."))
         match_str = f"{full_match_data.get('comp_level').upper()}{full_match_data.get('match_number')}"
         blocks = bkt.match_announcement(team, match_str, full_match_data.get('predicted_time') if full_match_data.get(
             'predicted_time') else full_match_data.get('scheduled_time'))
         client.chat_postMessage(channel=announcement_channel, text=f"Match {match_str} is starting soon!", blocks=blocks)
     if match_data.get("event_key") in events_to_scout:
         predicted_start = datetime.datetime.fromtimestamp(match_data.get("predicted_time") if match_data.get("predicted_time") else match_data.get("scheduled_time"))
-        log_message(format_log(f"Match {match_data.get('match_key')} at {match_data.get('event_key')} is starting soon, sending scouting reminders..."))
+        log_message_info(format_log_info(
+            f"Match {match_data.get('match_key')} at {match_data.get('event_key')} is starting soon, sending scouting reminders..."))
         for scout_id in match_scouts.keys():
             scout = match_scouts.get(scout_id)
             for shift in match_scouting_shifts.get(scout.get("shift")):
@@ -77,9 +140,9 @@ def send_scouting_reminder(scout_id, full_match_data):
     match_str = f"{full_match_data.get('comp_level').upper()}{full_match_data.get('match_number')}"
     alliance_member = f"{scout.get('alliance').capitalize()} {scout.get('team')}"
     blocks = bkt.scouting_reminder(match_str, team_num, alliance_member)
-    log_message(format_log(f"Sending reminder to <@{scout_id}> to scout {team_num} ({alliance_member}) in {match_str}"))
+    log_message_info(
+        format_log_info(f"Sending reminder to <@{scout_id}> to scout {team_num} ({alliance_member}) in {match_str}"))
     send_dm(scout_id, f"{match_str} is starting soon, get ready to scout {team_num} ({alliance_member})!", blocks)
-
 
 @app.route("/commands/command", methods=["POST"])
 def command():
@@ -90,7 +153,7 @@ def send_schedules():
     user = request.values.get("user_id")
     channel = request.values.get("channel_id")
     if channel == admin_channel:
-        log_message(format_log(f"Sending schedule notifications as requested by <@{user}>."))
+        log_message_info(format_log_info(f"Sending schedule notifications as requested by <@{user}>."))
         send_all_schedules()
         client.chat_postMessage(channel=channel, text="Schedule notifications sent.")
         return ""
@@ -119,7 +182,6 @@ def how_we_doin():
             return ""
     return f":x: No ongoing events found for {team}."
 
-
 @app.route("/commands/events_available", methods=["POST"])
 def events_available():
     year = datetime.datetime.now().year
@@ -132,18 +194,18 @@ def events_available():
 @app.route("/webhooks/tba", methods=["POST"])
 def tba_webhook():
     data = json.loads(request.data)
-    log_message(format_log(f"Received TBA webhook: {data}"))
+    log_message_info(format_log_info(f"Received TBA webhook: {data}"))
     if data.get("message_type") == "verification":
         message  = f"Received TBA webhook verification key: `{data.get('message_data').get('verification_key')}`"
         client.chat_postMessage(channel=admin_channel, text=message)
-        log_message(format_log(message))
+        log_message_info(format_log_info(message))
     elif data.get("message_type") == "upcoming_match":
         process_match(data.get("message_data"))
     elif data.get("message_type") == "ping":
-        log_message(format_log("Received TBA webhook ping..."))
+        log_message_info(format_log_info("Received TBA webhook ping..."))
         client.chat_postMessage(channel=admin_channel, text=f"Recieved TBA webhook ping, webhook is working.")
     else:
-        log_message(format_log(f"Unknown TBA webhook type: {data}"))
+        log_message_info(format_log_info(f"Unknown TBA webhook type: {data}"))
     return ""
 
 @app.errorhandler(HTTPException)
@@ -153,16 +215,17 @@ def handle_exception(e):
     method = flask.request.method
     path = flask.request.path
     http_version = flask.request.environ.get("SERVER_PROTOCOL", "HTTP/1.1")
-    log_message(f":x: [{datetime.datetime.now()}] {e.code} {e.description}"
-                + (f"\n\n-- TRACEBACK: --\n\n{traceback.format_exc().strip()}" if e.code == 500 else "")
-                + f"\n\n-- REQUEST: --\n\n{method} {http_version} {path}"
-                + (f"\n\n-- REQUEST HEADERS: --\n\n{headers}" if headers else "")
-                + (f"\n\n-- REQUEST DATA: --\n\n{data}" if data else ""))
+    log_message_info(f":x: [{datetime.datetime.now()}] {e.code} {e.description}"
+                     + (f"\n\n-- TRACEBACK: --\n\n{traceback.format_exc().strip()}" if e.code == 500 else "")
+                     + f"\n\n-- REQUEST: --\n\n{method} {http_version} {path}"
+                     + (f"\n\n-- REQUEST HEADERS: --\n\n{headers}" if headers else "")
+                     + (f"\n\n-- REQUEST DATA: --\n\n{data}" if data else ""))
     return ":x: Something went wrong, please try again later."
 
 
-log_message(format_log("Server started"))
-
+load_shift_info()
+log_message_info(format_log_info("App successfully initialized."))
 
 if __name__ == "__main__":
+    log_message_info(format_log_info("Starting server in __main__ block..."))
     app.run("localhost", port=8080, debug=True)

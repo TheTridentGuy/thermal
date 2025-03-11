@@ -116,6 +116,7 @@ def match_scouting_schedule(shift_str, setup_link):
     return blocks
 
 def scouting_reminder(game, team, alliance_member):
+    # TODO: add url for scouting app
     blocks = [
         {
             "type": "section",
@@ -189,6 +190,52 @@ def match_report(event_name, match_str, team, ranking, wins, losses, ties):
             "text": {
                 "type": "mrkdwn",
                 "text": f"*{team}* is currently ranked #{ranking} with a record of {wins}-{losses}-{ties} (W-L-T) in qualification matches."
+            }
+        }
+    ]
+    return blocks
+
+def config_message(scouting_enabled, current_variant, available_variants):
+    blocks = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Configuration Loaded:*"
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":white_check_mark: Scouting is enabled, scouting notifications will be sent out automatically." if scouting_enabled else ":x: Scouting is disabled, scouting notifications will not be sent."
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f":information_source: Current schedule variant is *{current_variant}*."
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"Available schedule variants: {', '.join(['*'+variant+'*' for variant in available_variants])}"
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"[{datetime.now().strftime('%d-%m-%Y %H:%M')}]"
             }
         }
     ]
