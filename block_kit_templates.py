@@ -142,11 +142,10 @@ def scouting_reminder(game, team, alliance_member):
 def match_announcement(team, match_str, predicted_time):
     blocks = [
         {
-            "type": "header",
+            "type": "section",
             "text": {
-                "type": "plain_text",
-                "text": f"Upcoming match for {team} at {datetime.fromtimestamp(predicted_time).strftime('%b %d')}:",
-                "emoji": True
+                "type": "mrkdwn",
+                "text": f"*<!here> Upcoming match for {team} at {datetime.fromtimestamp(predicted_time).strftime('%b %d')}:*"
             }
         },
         {
@@ -158,7 +157,17 @@ def match_announcement(team, match_str, predicted_time):
                 "type": "mrkdwn",
                 "text": f"*{match_str}*"
             }
-        }
+        },
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*PIT CREW: Our robot should be in queue.*"
+			}
+		}
     ]
     return blocks
 

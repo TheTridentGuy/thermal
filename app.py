@@ -131,7 +131,7 @@ def process_match(match_data):
                 if shift_start < predicted_start < shift_end:
                     send_scouting_reminder(scout_id, full_match_data)
                     break
-
+client.chat_postMessage(channel=log_channel, blocks=bkt.match_announcement("4159", "hello", datetime.datetime.now().timestamp()))
 def send_scouting_reminder(scout_id, full_match_data):
     scout = match_scouts.get(scout_id)
     alliance = full_match_data.get("alliances").get(scout.get("alliance"))
@@ -146,6 +146,10 @@ def send_scouting_reminder(scout_id, full_match_data):
 
 @app.route("/commands/command", methods=["POST"])
 def command():
+    pass
+
+@app.route("/commands/change_schedule", methods=["POST"])
+def change_schedule():
     pass
 
 @app.route("/commands/send_schedules", methods=["POST"])
