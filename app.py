@@ -119,7 +119,7 @@ def process_match(match_data):
         blocks = bkt.match_announcement(team, match_str, full_match_data.get('predicted_time') if full_match_data.get(
             'predicted_time') else full_match_data.get('scheduled_time'))
         client.chat_postMessage(channel=announcement_channel, text=f"Match {match_str} is starting soon!", blocks=blocks)
-    if match_data.get("event_key") in events_to_scout:
+    if match_data.get("event_key") in events_to_scout and full_match_data.get("comp_level") == "qm" and scouting_enabled:
         predicted_start = datetime.datetime.fromtimestamp(match_data.get("predicted_time") if match_data.get("predicted_time") else match_data.get("scheduled_time"))
         log_message_info(format_log_info(
             f"Match {match_data.get('match_key')} at {match_data.get('event_key')} is starting soon, sending scouting reminders..."))
@@ -139,14 +139,23 @@ def send_scouting_reminder(scout_id, full_match_data):
     team_num = team_key[3:]
     match_str = f"{full_match_data.get('comp_level').upper()}{full_match_data.get('match_number')}"
     alliance_member = f"{scout.get('alliance').capitalize()} {scout.get('team')}"
-    blocks = bkt.scouting_reminder(match_str, team_num, alliance_member)
+    app_link = f"https://scouting.team4159.org/scouting/match?matchCode={full_match_data.get('event_key')}_{full_match_data.get('comp_level')}{full_match_data.get('match_number')}_{team_num}"
+    blocks = bkt.scouting_reminder(match_str, team_num, alliance_member, app_link)
     log_message_info(
-        format_log_info(f"Sending reminder to <@{scout_id}> to scout {team_num} ({alliance_member}) in {match_str}"))
+        format_log_info(f"Sending reminder to <@{scout_id}> to scout {team_num} ({alliance_member}) in {match_str}. App link: {app_link}"))
     send_dm(scout_id, f"{match_str} is starting soon, get ready to scout {team_num} ({alliance_member})!", blocks)
 
 @app.route("/commands/command", methods=["POST"])
 def command():
     pass
+
+@app.route("/commands/config", methods=["POST"])
+def config():
+    if request.values.get("channel_id") == admin_channel:
+        load_shift_info()
+    else:
+        return f":x: You need to run this command from <#{admin_channel}>."
+    return ""
 
 @app.route("/commands/toggle_scouting", methods=["POST"])
 def toggle_scouting():

@@ -115,8 +115,7 @@ def match_scouting_schedule(shift_str, setup_link):
     ]
     return blocks
 
-def scouting_reminder(game, team, alliance_member):
-    # TODO: add url for scouting app
+def scouting_reminder(game, team, alliance_member, app_link):
     blocks = [
         {
             "type": "section",
@@ -132,7 +131,7 @@ def scouting_reminder(game, team, alliance_member):
                     "emoji": True
                 },
                 "value": "click_me_123",
-                "url": "https://google.com",
+                "url": app_link,
                 "action_id": "button-action"
             }
         }
